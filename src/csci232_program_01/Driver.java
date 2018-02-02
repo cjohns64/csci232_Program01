@@ -1,4 +1,4 @@
-package csci232_program_01;
+import sun.reflect.generics.tree.Tree;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.PriorityQueue;
 
-import csci232_program_01.Tree;
 
 /**
  * Driver for CSCI 232 Program 1
@@ -20,10 +19,11 @@ import csci232_program_01.Tree;
  * Encodes and displays the contents of input.txt as binary to the console
  * Decodes binary message and writes the decode message to output.txt
  * 
- * @authors Cory Johns, Justin Keeling, 
+ * @authors Cory Johns, Justin Keeling, Alex Harry
  * @version 01.28.2018
  */
 public class Driver {
+    private Tree huffman_tree;
 	private static PriorityQueue<Node> queue;
 	
 	public static void main(String[] args) {
@@ -48,23 +48,27 @@ public class Driver {
 		    
 		    // generate the huffman tree, and print the frequency table
 		    st_writer.write("\tFrequency Table:\n");
-			Tree huffman_tree = generate_huffman_tree(input_path, charset, st_writer);
+			huffman_tree = generate_huffman_tree(input_path, charset, st_writer);
 		    
 			// TODO encode the tree into binary by following the branches to each letter
 		    // Display the huffman code table to the console
+                    
 		    // Encode and display the contents of input.txt as binary to the console
 			
 			// TODO Decode the message from binary back to text by using '0's as a left and '1's as a right
 		    // Decodes binary message and writes the decode message to output.txt
-			
-		    
-		    // close the writer to update the output
+			huffman_tree.displayTree(st_writer);
+		    huffman_tree.traverse(3, st_writer);
+
+            // close the writer to update the output
 		    st_writer.close();
-		} catch (IOException e) {
+
+        } catch (IOException e) {
 			System.out.println("IOException: " + e);
 		}
-		
-	}
+        huffman_tree.printInputCode();
+
+    }
 	
 	/**
 	 * Generates a huffman tree for the given text file and prints the letter frequency chart.
@@ -78,7 +82,7 @@ public class Driver {
 	 */
 	private static Tree generate_huffman_tree(Path input_path, Charset charset, BufferedWriter writer) {
 		// make a new priority queue, the nodes will compare frequencies directly thanks to a compare @Override
-		Node comparer = new Node('\0');
+		Node comparer = new Node('\0');// null character
 		PriorityQueue<Node> frequency_queue = new PriorityQueue<Node>(comparer);
 		
 		// read in the input file line by line to get the letter frequency and put it in a linked list
@@ -154,6 +158,7 @@ public class Driver {
 			
 			// return the tree object
 			return new Tree(first);
+                        
 			
 		} catch (IOException x) {
 			System.out.println("IOException: " + x);
