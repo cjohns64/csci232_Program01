@@ -1,4 +1,4 @@
-import sun.reflect.generics.tree.Tree;
+package csci232_program_01;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,10 +23,10 @@ import java.util.PriorityQueue;
  * @version 01.28.2018
  */
 public class Driver {
-    private Tree huffman_tree;
-	private static PriorityQueue<Node> queue;
+    
 	
 	public static void main(String[] args) {
+		Tree huffman_tree = null;
 		// define charset
 		Charset charset = Charset.forName("US-ASCII");
 		
