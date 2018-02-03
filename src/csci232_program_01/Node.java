@@ -86,7 +86,6 @@ public class Node implements Comparator<Node> {
         }
     }
             
-        
 
     public String getCode() {
         return code;

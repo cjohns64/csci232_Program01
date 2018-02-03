@@ -1,14 +1,15 @@
 package csci232_program_01;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Stack;
 
 /**
- * @author (Robert Lafore. 2002. Data Structures and Algorithms in Java ( 2 ed.).
+ *
+ * @author (Robert Lafore. 2002. Data Structures and Algorithms in Java (2 ed.).
  * Sams, Indianapolis, IN, USA
  */
 public class Tree {
-    private static String inputString;
     private Node root;                 // first Node of Tree
 
     public Tree() {                    // constructor
@@ -44,8 +45,8 @@ public class Tree {
      * Finds the minimum key in the tree simply by going left at every
      * opportunity until there are no more nodes
      *
-     * @return the node with the minimum key
      * @author Cory Johns
+     * @return the node with the minimum key
      */
     public Node findMin() {
         Node current = root;
@@ -63,8 +64,8 @@ public class Tree {
      * Finds the max key in the tree simply by going right at every opportunity
      * until there are no more nodes
      *
-     * @return the node with the maximum key
      * @author Cory Johns
+     * @return the node with the maximum key
      */
     public Node findMax() {
         Node current = root;
@@ -107,7 +108,7 @@ public class Tree {
     } // end insert()
 
     public boolean delete(int frequency) {             // delete node with given frequency
-        Node current = root;                     // (assumes non-empty list)
+        Node current = root;		             // (assumes non-empty list)
         Node parent = root;
         boolean isLeftChild = true;
 
@@ -208,7 +209,6 @@ public class Tree {
             case 3:
                 writer.write("\nEncoded frequency: \n");
                 postOrder(root, writer, "");
-
                 break;
             default:
                 writer.write("Invalid traversal type\n");
@@ -237,47 +237,39 @@ public class Tree {
         }
     }
 
-    public boolean isLeaf(Node child, String code, BufferedWriter writer) throws IOException {
-        if (child.leftChild == null && child.rightChild == null) {
+    public boolean isLeaf(Node child, String code,BufferedWriter writer) throws IOException {
+        if (child.leftChild == null &&child.rightChild == null) {
             return true;
-        } else {
+        }
+        else{
             return false;
         }
     }
-
-    // modified for general buffered writer instead of System.out.print
-// e, o , g, , n, i, \n, l, h, y, 
+    
+    public Encode encode;
+    // postorder method travereses through tree while checking leaf nodes. It assigns a code if leaf.
     private void postOrder(Node localParent, BufferedWriter writer, String code) throws IOException {
         if (!isLeaf(localParent.leftChild, code, writer)) {
-            inputString += code;
-            postOrder(localParent.leftChild, writer, (code + "0"));
-        } else if (isLeaf(localParent.leftChild, code, writer)) {
-            code = code.substring(0);
-            code = code + "0";
-            if (inputString == null){
-                inputString = code;
-            }
-            else {
-                inputString += code;
-            }
+            postOrder(localParent.leftChild, writer, (code+"0"));
+        }
+        else if(isLeaf(localParent.leftChild, code, writer)){
 
-            writer.write(code + " " + localParent.leftChild.getLetter() + "\n");
-            localParent.assignCode(localParent.leftChild, code);
-            code = code.substring(0, code.length() - 1);
+            code = code + "0" ;
+            encode = new Encode(writer,code, localParent.leftChild.getLetter());
+            encode.printCode();
+            code = code.substring(0,code.length()-1);
         }
         if (!isLeaf(localParent.rightChild, code, writer)) {
-            postOrder(localParent.rightChild, writer, (code + "1"));
-        } else if (isLeaf(localParent.rightChild, code, writer)) {
-            code = code.substring(0);
-            code = code + "1";
-            inputString += code;
-            writer.write(code + " " + localParent.rightChild.getLetter() + "\n");
-            localParent.assignCode(localParent.rightChild, code);
-            code = code.substring(0, code.length() - 1);
+            postOrder(localParent.rightChild, writer, (code+"1"));
         }
-        //   localParent.printNode(writer);
-        //   writer.write(" ");
-    }
+        else if(isLeaf(localParent.rightChild, code, writer)){
+
+            code = code + "1" ;           
+             encode = new Encode(writer,code, localParent.rightChild.getLetter());
+            encode.printCode();
+            code = code.substring(0,code.length()-1);
+        }
+        }
 
     // modified for general buffered writer instead of System.out.print
     // and adjusted to use printNode()
@@ -322,9 +314,5 @@ public class Tree {
             } // end while isRowEmpty is false
             writer.write(".................................................................\n");
         } // end displayTree()
-    }
-
-    public void printInputCode() {
-        System.out.println("input code " + inputString);
     }
 }
