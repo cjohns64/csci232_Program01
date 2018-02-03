@@ -85,7 +85,16 @@ public class Node implements Comparator<Node> {
             this.code = num;
         }
     }
-            
+    
+    public void printCode(BufferedWriter writer) throws IOException {
+        String printletter;
+        if (letter == '\n') {
+            printletter = "\\n";
+        } else {
+            printletter = "" + letter;
+        }
+        writer.write("{'" + printletter + "', " + getCode() + " }\n");
+    }
 
     public String getCode() {
         return code;

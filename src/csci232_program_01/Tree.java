@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Stack;
 
+
 /**
  *
  * @author (Robert Lafore. 2002. Data Structures and Algorithms in Java (2 ed.).
@@ -40,6 +41,50 @@ public class Tree {
         }
         return current;                         // found it
     }  //end find()
+    
+    /**
+     * finds the given letter by traversing the tree
+     * @param letter
+     * @return the node containing the letter, or null if it is not in the tree
+     */
+    public Node find_letter(char letter) {
+		return preOrder_find(root, letter);
+    }
+    
+    /**
+     * Recursively finds the given letter, only checks leaves since letters leaves
+     * @param localRoot
+     * @param letter
+     * @return
+     */
+    private Node preOrder_find(Node localRoot, char letter) {
+        if (localRoot != null) {
+        	// letters are only in leaves
+        	if (isLeaf(localRoot)) {
+        		// test if letter is in current node
+            	if (localRoot.letter == letter) {
+            		return localRoot;
+            	}
+            	else {
+            		return null;
+            	}
+        	}
+        	
+        	Node tmp;
+        	// test if letter is in left child
+            tmp = preOrder_find(localRoot.leftChild, letter);
+            if (tmp != null) {
+            	return tmp;
+            }
+            
+            // test if letter is in right child
+            tmp = preOrder_find(localRoot.rightChild, letter);
+            if (tmp != null) {
+            	return tmp;
+            }
+        }
+        return null;
+    }
 
     /**
      * Finds the minimum key in the tree simply by going left at every
@@ -207,8 +252,8 @@ public class Tree {
                 inOrder(root, writer);
                 break;
             case 3:
-                writer.write("\nEncoded frequency: \n");
-                postOrder(root, writer, "");
+                writer.write("\nPostorder traversal: \n");
+                postOrder(root, writer);
                 break;
             default:
                 writer.write("Invalid traversal type\n");
@@ -236,8 +281,18 @@ public class Tree {
             inOrder(localRoot.rightChild, writer);
         }
     }
+    
+    // modified for general buffered writer instead of System.out.print
+ 	private void postOrder(Node localRoot, BufferedWriter writer) throws IOException {
+ 		if (localRoot != null) {
+ 			postOrder(localRoot.leftChild, writer);
+ 			postOrder(localRoot.rightChild, writer);
+ 			localRoot.printNode(writer);
+            writer.write(" ");		
+ 		}
+ 	}
 
-    public boolean isLeaf(Node child, String code,BufferedWriter writer) throws IOException {
+    public boolean isLeaf(Node child) {
         if (child.leftChild == null &&child.rightChild == null) {
             return true;
         }
@@ -246,30 +301,54 @@ public class Tree {
         }
     }
     
-    public Encode encode;
-    // postorder method travereses through tree while checking leaf nodes. It assigns a code if leaf.
-    private void postOrder(Node localParent, BufferedWriter writer, String code) throws IOException {
-        if (!isLeaf(localParent.leftChild, code, writer)) {
-            postOrder(localParent.leftChild, writer, (code+"0"));
+    /**
+     * Sets all the codes for the huffman tree,
+     * and prints the code table
+     * @param writer
+     * @throws IOException
+     */
+    public void set_codes(BufferedWriter writer) throws IOException {
+    	writer.write("\nCode Table: \n");
+    	// start at the root
+    	postOrder_addCodes(root, "", writer);
+    }
+    
+    /**
+     * Sets the code values for all the leaves in the tree,
+     * also prints the code table
+     * @param localParent
+     * @param code
+     * @param writer
+     * @throws IOException
+     */
+    private void postOrder_addCodes(Node localParent, String code, BufferedWriter writer) throws IOException {
+    	// left child is not a leaf
+        if (!isLeaf(localParent.leftChild)) {
+        	postOrder_addCodes(localParent.leftChild, (code + "0"), writer);
         }
-        else if(isLeaf(localParent.leftChild, code, writer)){
-
-            code = code + "0" ;
-            encode = new Encode(writer,code, localParent.leftChild.getLetter());
-            encode.printCode();
-            code = code.substring(0,code.length()-1);
+        // left child is a leaf
+        else {
+        	// we went left, so code + 0
+            // set the code
+            localParent.leftChild.code = code + "0";
+            // print code for code table
+            localParent.leftChild.printCode(writer);
         }
-        if (!isLeaf(localParent.rightChild, code, writer)) {
-            postOrder(localParent.rightChild, writer, (code+"1"));
+        // check right child
+        
+        // right child is not a leaf
+        if (!isLeaf(localParent.rightChild)) {
+        	postOrder_addCodes(localParent.rightChild, (code + "1"), writer);
         }
-        else if(isLeaf(localParent.rightChild, code, writer)){
-
-            code = code + "1" ;           
-             encode = new Encode(writer,code, localParent.rightChild.getLetter());
-            encode.printCode();
-            code = code.substring(0,code.length()-1);
+        // right child is a leaf
+        else {
+        	// we went right, so code + 1
+            // set the code
+            localParent.rightChild.code = code + "1";
+            // print code for code table
+            localParent.rightChild.printCode(writer);
         }
-        }
+    }
 
     // modified for general buffered writer instead of System.out.print
     // and adjusted to use printNode()

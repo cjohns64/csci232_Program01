@@ -26,14 +26,18 @@ public class Driver {
         // define charset
         Charset charset = Charset.forName("US-ASCII");
 
-        // set up file path
+        // set up file paths
         Path input_path = FileSystems.getDefault().getPath("./input", "input.txt");
+        Path output_path = FileSystems.getDefault().getPath("./output", "output.txt");
 
         // set up a writer that will print to console
         BufferedWriter st_writer = new BufferedWriter(new OutputStreamWriter(System.out));
 
         try {
+        	// set up the reader
             BufferedReader reader = Files.newBufferedReader(input_path, charset);
+            // set up a writer that will print to output.txt
+            BufferedWriter file_writer = Files.newBufferedWriter(output_path, charset);
 
             st_writer.write("\tOriginal message:\n");
             String line = null;
@@ -46,14 +50,20 @@ public class Driver {
             st_writer.write("\tFrequency Table:\n");
             Tree huffman_tree = generate_huffman_tree(input_path, charset, st_writer);
 
-            // TODO encode the tree into binary by following the branches to each letter
+            // encode the tree into binary by following the branches to each letter
             // Display the huffman code table to the console
+            generate_encode(huffman_tree, st_writer);
+            
             // Encode and display the contents of input.txt as binary to the console
+            st_writer.write("\n\tEncoded input file (new lines inserted after 100 chars for readability):\n");
+            String binary_code = compress_file(input_path, huffman_tree, st_writer, charset);
+            
             // TODO Decode the message from binary back to text by using '0's as a left and '1's as a right
             // Decodes binary message and writes the decode message to output.txt
-            generate_encode(huffman_tree, st_writer);
+            
             huffman_tree.displayTree(st_writer);
-            compact(input_path, charset);
+            
+            
             // close the writer to update the output
             st_writer.close();
 
@@ -63,25 +73,72 @@ public class Driver {
 
     }
 
+    /**
+     * Sets all the codes for each letter in the tree
+     * @param tree
+     * @param writer
+     * @throws IOException
+     */
     private static void generate_encode(Tree tree, BufferedWriter writer) throws IOException {
-        tree.traverse(3, writer);
+        tree.set_codes(writer);
     }
 
-    //compacts code. Reads each charcter. FInds charcter to a node. Encode provides code.
-    public static void compact(Path file, Charset charset) throws IOException {
-        String text;
+    /**
+     * Compresses the input file using the given huffman tree and writes the result to the given writer
+     * also returns the output as a string
+     * @param file the input file
+     * @param code_tree the huffman tree
+     * @param writer the buffered writer to use as ouput
+     * @param charset
+     * @return the output encoded file as a string
+     * @throws IOException
+     */
+    public static String compress_file(Path file, Tree code_tree, BufferedWriter writer, Charset charset) throws IOException {
+        String text = "";
         String line;
         Node node;
-        // parameters of newBufferedReader(pathway, Charset)
+        
         try (BufferedReader reader = Files.newBufferedReader(file, charset)) { 
+        	// read the next line
             while ((line = reader.readLine()) != null) {
 
+            	// read each char, and find the code
                 for (char letter : line.toCharArray()) {
+                	// find char in tree
+                	node = code_tree.find_letter(letter);
+                	// check that it was found
+                	if (node != null) {
+                		// add code to output
+                		text += node.code;
+                	}
+                	else {
+                		// error!
+                		System.out.println("Letter '" + letter + "' was not found in tree");
+                	}
                 }
+                
             }
+            // print the result
+            //writer.write(text + "\n");
+            int i = 0;
+        	int line_len = 100;
+            try {
+            	while (true) {
+            		writer.write(text, i, line_len);
+            		writer.write("\n");
+            		i += line_len;
+                }
+            } catch (StringIndexOutOfBoundsException e) {
+            	// this means we are done, so print the remainder
+            	writer.write(text, i, text.length() - i);
+            	writer.write("\n");
+            }
+            
         } catch (IOException xx) {
             System.err.format("IOException: %s%n", xx);
         }
+        // return the encoded string
+        return text;
     }
 
     /**
