@@ -6,7 +6,7 @@ import java.util.Stack;
 
 
 /**
- * Original author
+ * Original author:
  * @author (Robert Lafore. 2002. Data Structures and Algorithms in Java (2 ed.).
  * Sams, Indianapolis, IN, USA
  * 

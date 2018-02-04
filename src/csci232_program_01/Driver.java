@@ -43,6 +43,7 @@ public class Driver {
             String line = null;
             // read in a line and write it to the console
             while ((line = reader.readLine()) != null) {
+            	// reader does not read trailing new lines
                 st_writer.write(line + "\n");
             }
 

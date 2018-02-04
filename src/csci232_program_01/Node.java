@@ -21,7 +21,6 @@ public class Node implements Comparator<Node> {
 
     /**
      * Constructor for a known letter
-     *
      * @param letter
      */
     public Node(char letter) {
@@ -31,7 +30,6 @@ public class Node implements Comparator<Node> {
 
     /**
      * Constructor for a known frequency
-     *
      * @param frequency
      */
     public Node(int frequency) {
@@ -44,18 +42,11 @@ public class Node implements Comparator<Node> {
 
     /**
      * Prints the node's descriptive information and frequency to the given writer
-     *
      * @param writer
      * @throws IOException
      */
     public void printNode(BufferedWriter writer) throws IOException {
-        String printletter;
-        if (letter == '\n') {
-            printletter = "\\n";
-        } else {
-            printletter = "" + letter;
-        }
-        writer.write("{'" + printletter + "', " + frequency + " }");
+        writer.write("{'" + printLetter(letter) + "', " + frequency + " }");
     }
 
     /**
@@ -67,14 +58,8 @@ public class Node implements Comparator<Node> {
      * @throws IOException
      */
     public void printNode(BufferedWriter writer, boolean print_null_nodes) throws IOException {
-        String printletter;
         if (print_null_nodes || (!print_null_nodes && letter != '\0')) {
-            if (letter == '\n') {
-                printletter = "\\n";
-            } else {
-                printletter = "" + letter;
-            }
-            writer.write("{'" + printletter + "', " + frequency + " }\n");
+            writer.write("{'" + printLetter(letter) + "', " + frequency + " }\n");
         }
     }
 
@@ -84,17 +69,21 @@ public class Node implements Comparator<Node> {
      * @throws IOException
      */
     public void printCode(BufferedWriter writer) throws IOException {
-        String printletter;
-        if (letter == '\n') {
-            printletter = "\\n";
-        } else {
-            printletter = "" + letter;
-        }
-        writer.write("{'" + printletter + "', " + getCode() + " }\n");
+        writer.write("{'" + printLetter(letter) + "', " + code + " }\n");
     }
-
-    public String getCode() {
-        return code;
+    
+    /**
+     * Translates the raw letter to a string for printing
+     * @param letter
+     * @return string representing the letter
+     */
+    private String printLetter(char letter) {
+    	// replace new lines with '\n'
+        if (letter == '\n') {
+            return "\\n";
+        } else {
+            return "" + letter;
+        }
     }
 
     @Override
