@@ -11,14 +11,14 @@ import java.nio.file.Path;
 import java.util.PriorityQueue;
 
 /**
+ * Authors:  Cory Johns, Justin Keeling, Alex Harry
+ * Date: 2/4/2018
+ * Overview:
  * Driver for CSCI 232 Program 1 Reads the original message from input.txt and
  * is displays it to the console Displays the frequency table to the console for
  * each letter in the input file Displays the huffman code table to the console
  * Encodes and displays the contents of input.txt as binary to the console
  * Decodes binary message and writes the decode message to output.txt
- *
- * @authors Cory Johns, Justin Keeling, Alex Harry
- * @version 01.28.2018
  */
 public class Driver {
 

@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.util.Comparator;
 
 /**
+ * Authors: Justin Keeling, Cory Johns, Alex Harry 
+ * Date: 2/4/2018 
+ * Overview:
  * List element in the Priority Queue & nodes in the huffman tree,
  * stores a letter and frequency of the letter and 
  * is repurposed as leafs in the huffman tree later on.
- *
- * @author Cory Johns, Jistin Keeling, Alex Harry
- * @version 01.27.2018
  */
 public class Node implements Comparator<Node> {
 
