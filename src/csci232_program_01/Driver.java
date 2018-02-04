@@ -52,20 +52,22 @@ public class Driver {
 
             // encode the tree into binary by following the branches to each letter
             // Display the huffman code table to the console
+            st_writer.write("\n\tCode Table: \n");
             generate_encode(huffman_tree, st_writer);
             
             // Encode and display the contents of input.txt as binary to the console
             st_writer.write("\n\tEncoded input file (new lines inserted after 100 chars for readability):\n");
             String binary_code = compress_file(input_path, huffman_tree, st_writer, charset);
             
-            // TODO Decode the message from binary back to text by using '0's as a left and '1's as a right
+            // Decode the message from binary back to text by using '0's as a left and '1's as a right
             // Decodes binary message and writes the decode message to output.txt
+            file_writer.write(huffman_tree.decode(binary_code));
             
-            huffman_tree.displayTree(st_writer);
+            //huffman_tree.displayTree(st_writer);
             
-            
-            // close the writer to update the output
+            // close the writers to update the output
             st_writer.close();
+            file_writer.close();
 
         } catch (IOException e) {
             System.out.println("IOException: " + e);
@@ -99,7 +101,7 @@ public class Driver {
         Node node;
         
         try (BufferedReader reader = Files.newBufferedReader(file, charset)) { 
-        	// read the next line
+        	// read the next line, reader ignores \n chars so we will need to add them specially
             while ((line = reader.readLine()) != null) {
 
             	// read each char, and find the code
@@ -116,15 +118,29 @@ public class Driver {
                 		System.out.println("Letter '" + letter + "' was not found in tree");
                 	}
                 }
+                // end of a line, append ignored \n
+                // find char in tree
+            	node = code_tree.find_letter('\n');
+            	// check that it was found
+            	if (node != null) {
+            		// add code to output
+            		text += node.code;
+            	}
+            	else {
+            		// error!
+            		System.out.println("Letter '\\n' was not found in tree");
+            	}
                 
             }
-            // print the result
-            //writer.write(text + "\n");
+            // print the result 100 chars at a time
             int i = 0;
         	int line_len = 100;
             try {
+            	// this will throw a StringIndexOutOfBoundsException when it can't print another 100 chars
             	while (true) {
+            		// write the next 100 chars
             		writer.write(text, i, line_len);
+            		// append a new line
             		writer.write("\n");
             		i += line_len;
                 }

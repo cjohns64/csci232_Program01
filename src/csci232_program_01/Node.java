@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.Comparator;
 
 /**
- * List element in the Priority Queue, stores a letter and frequency of the
- * letter and is repurposed as leafs in the huffman tree later on.
+ * List element in the Priority Queue & nodes in the huffman tree,
+ * stores a letter and frequency of the letter and 
+ * is repurposed as leafs in the huffman tree later on.
  *
  * @author Cory Johns, Jistin Keeling, Alex Harry
  * @version 01.27.2018
@@ -42,7 +43,7 @@ public class Node implements Comparator<Node> {
     }
 
     /**
-     * Prints the node's descriptive information to the given writer
+     * Prints the node's descriptive information and frequency to the given writer
      *
      * @param writer
      * @throws IOException
@@ -58,8 +59,8 @@ public class Node implements Comparator<Node> {
     }
 
     /**
-     * Prints the node's descriptive information to the given writer
-     *
+     * Prints the node's descriptive information and frequency to the given writer
+     * will not print nodes with letter values of '\0' print_null_nodes is false
      * @param writer
      * @param print_null_nodes will not print nodes with letter values of '\0'
      * if false
@@ -77,15 +78,11 @@ public class Node implements Comparator<Node> {
         }
     }
 
-    public void assignCode(Node parent, String num) {
-        if (parent.getCode() != null) {
-           this.code = parent.getCode() + num;
-
-        } else {
-            this.code = num;
-        }
-    }
-    
+    /**
+     * prints the node's descriptive information and huffman code to the given writer
+     * @param writer
+     * @throws IOException
+     */
     public void printCode(BufferedWriter writer) throws IOException {
         String printletter;
         if (letter == '\n') {

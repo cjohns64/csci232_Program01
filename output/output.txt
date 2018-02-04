@@ -1,0 +1,6 @@
+a tree structure is a way of representing the hierarchical nature of a structure in a graphical form
+a binary tree is a tree data structure in which each node has at most two children
+a binary search tree is a rooted binary tree
+the internal nodes of a binary search tree each store a key and possibly a value
+the internal nodes of a binary search tree have two sub-trees
+these statements were modified from wikipedia

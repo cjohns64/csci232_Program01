@@ -6,12 +6,16 @@ import java.util.Stack;
 
 
 /**
- *
+ * Original author
  * @author (Robert Lafore. 2002. Data Structures and Algorithms in Java (2 ed.).
  * Sams, Indianapolis, IN, USA
+ * 
+ * Significantly redone by:
+ * @authors Cory Johns, Justin Keeling, Alex Harry
  */
 public class Tree {
     private Node root;                 // first Node of Tree
+    private String binary_code = "";
 
     public Tree() {                    // constructor
         root = null;                   // no nodes in tree yet
@@ -49,6 +53,48 @@ public class Tree {
      */
     public Node find_letter(char letter) {
 		return preOrder_find(root, letter);
+    }
+    
+    /**
+     * Decodes the given binary code string back to the original message
+     * @param code the string to decode
+     * @return the decoded string
+     */
+    public String decode(String code) {
+    	binary_code = code;
+    	String decoded = "";
+    	while (binary_code.length() > 0) {
+    		decoded += "" + recursive_decode(root);
+    	}
+    	return decoded;
+    }
+    
+    /**
+     * Recursively finds the fist char in the code and returns it
+     * also shortens the code so if it is run again it will return the next letter
+     * @param localRoot
+     * @return next letter in the code
+     */
+    private char recursive_decode(Node localRoot) {
+    	if (isLeaf(localRoot)) {
+    		return localRoot.letter;
+    	}
+    	else {
+    		// go left
+    		if (binary_code.startsWith("0")) {
+    			// remove first letter
+    			binary_code = binary_code.substring(1);
+    			// recur on left child
+    			return recursive_decode(localRoot.leftChild);
+    		}
+    		// go right
+    		else {
+    			// remove first letter
+    			binary_code = binary_code.substring(1);
+    			// recur on left child
+    			return recursive_decode(localRoot.rightChild);
+    		}
+    	}
     }
     
     /**
@@ -308,7 +354,6 @@ public class Tree {
      * @throws IOException
      */
     public void set_codes(BufferedWriter writer) throws IOException {
-    	writer.write("\nCode Table: \n");
     	// start at the root
     	postOrder_addCodes(root, "", writer);
     }
