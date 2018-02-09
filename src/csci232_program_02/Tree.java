@@ -83,8 +83,12 @@ private Node root;                 // first Node of Tree
 	 * @return
 	 */
 	private Node insert(Node local_root, Node insert_node) {
+		if (root == null) {
+			root = insert_node;
+			return root;
+		}
 		// check if we should go left
-		if (insert_node.key < local_root.key) {
+		else if (insert_node.key < local_root.key) {
 			// check if we should insert the node
 			if (local_root.leftChild == null) {
 				// insert the node
