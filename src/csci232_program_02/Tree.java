@@ -80,12 +80,14 @@ private Node root;                 // first Node of Tree
 	 * Recursively insert the given node
 	 * @param local_root
 	 * @param insert_node
-	 * @return
+	 * @return the parent of the inserted node
 	 */
 	private Node insert(Node local_root, Node insert_node) {
+		Node tmp_root = local_root;
+		
 		if (root == null) {
 			root = insert_node;
-			return root;
+			tmp_root = root;
 		}
 		// check if we should go left
 		else if (insert_node.key < local_root.key) {
@@ -93,11 +95,12 @@ private Node root;                 // first Node of Tree
 			if (local_root.leftChild == null) {
 				// insert the node
 				local_root.leftChild = insert_node;
-				return local_root;
+				// update height of the inserted node
+				local_root.leftChild.update_height();
 			}
 			else {
 				// recur with sub tree (left)
-				return insert(local_root.leftChild, insert_node);
+				tmp_root = insert(local_root.leftChild, insert_node);
 			}
 		}
 		// we should go right
@@ -106,14 +109,25 @@ private Node root;                 // first Node of Tree
 			if (local_root.rightChild == null) {
 				// insert the node
 				local_root.rightChild = insert_node;
-				return local_root;
+				// update height of the inserted node
+				local_root.rightChild.update_height();
 			}
 			else {
 				// recur with sub tree (right)
-				return insert(local_root.rightChild, insert_node);
+				tmp_root = insert(local_root.rightChild, insert_node);
 			}
 		}
+		// unspooling behavior
 		
+		// update height of this node
+		if (local_root != null) {
+			local_root.update_height();
+		}
+		else {
+			root.update_height();
+		}
+		// return parent of the inserted node
+		return tmp_root;
 	}
 	
 	public boolean delete_recur(int key) {
@@ -122,23 +136,39 @@ private Node root;                 // first Node of Tree
 	}
 	
 	private boolean delete_recur(Node parent, Node child, int key) {
+		boolean success;
+		
 		if (child == null) {
 			// not in tree
-			return false;
+			success = false;
 		}
 		else if (child.key == key) {
 			// found it
-			delete(parent, child, (parent.key > child.key));
-			return true;
+			if (parent == null) {
+				delete(parent, child, false);
+			}
+			else {
+				delete(parent, child, (parent.key > child.key));
+			}
+			success = true;
 		}
 		else if (child.key > key) {
 			// go left
-			return delete_recur(child, child.leftChild, key);
+			success = delete_recur(child, child.leftChild, key);
 		}
 		else {
 			// go right
-			return delete_recur(child, child.rightChild, key);
+			success = delete_recur(child, child.rightChild, key);
 		}
+		// unspooling behavior
+		
+		// updates the height of the deleted node up to the root
+		// in all deletion cases these are the only changed nodes
+		// except in 2-child deletion where the parent and up must also be updated
+		// this is handled in the delete method
+		child.update_height();
+		
+		return success;
 		
 	}
 	
@@ -146,8 +176,8 @@ private Node root;                 // first Node of Tree
 		// no children case
 		if (deletion.leftChild == null && deletion.rightChild == null) {
 			if (parent == null) {
-				// move the root reference to the child
-				root = deletion.getChild(isLeft);
+				// TODO there are no nodes in the tree!
+				root = null;
 			}
 			else {
 				// reassign parent's reference to this node to null
@@ -164,15 +194,61 @@ private Node root;                 // first Node of Tree
 			// successor parent's left = successor's right
 			// successor's right = successor's parent
 			// and get the successor
-			Node successor = getSuccessor(deletion);
+			Node successor = reconnect_successor(deletion);
 			
-			// set parent's relevant child to the successor
-			parent.setChild(isLeft, successor);
+			if (parent != null) {
+				// set parent's relevant child to the successor
+				parent.setChild(isLeft, successor);
+			}
+			else {
+				root = successor;
+			}
+			
 			// left successor = left deletion
 			successor.leftChild = deletion.leftChild;
 		}
 	}
 	
+	/**
+	 * Finds and reconnects the in order successor given the node that is being deleted.
+	 * Also updates the height of all affected nodes.
+	 * "reconnects" means:
+	 *      successor parent's left = successor's right, 
+	 *      successor's right = successor's parent
+	 * @param deletion the node being deleted
+	 * @return the in order successor
+	 */
+	private Node reconnect_successor(Node deletion) {
+		// looks bad, but will be fixed first thing in the recursive method
+		return reconnect_successor(deletion, deletion, deletion);
+	}
+	
+	private Node reconnect_successor(Node parent, Node current, Node deletion) {
+		// defaults to where we are
+		Node tmp = current;
+		
+		// go right if we are just starting
+		if (current == deletion) {
+			tmp = reconnect_successor(current, current.rightChild, deletion);
+		}
+		// continue if we are not at the end
+		else if (current.leftChild != null) {
+			tmp = reconnect_successor(current, current.leftChild, deletion);
+		}
+		// found the in-order-successor
+		else {
+			//make connections
+			if (current != deletion.rightChild) {
+				parent.leftChild = current.rightChild;
+				current.rightChild = deletion.rightChild;
+			}
+			// tmp already equals current
+		}
+		// unspooling behavior
+		current.update_height();
+		
+		return tmp;
+	}
 	
 	
 	public boolean delete(int key) {             // delete node with given key
@@ -353,7 +429,7 @@ private Node root;                 // first Node of Tree
 			while (globalStack.isEmpty()==false) {
 				Node temp = (Node) globalStack.pop();
 				if (temp != null) {
-					writer.write("" + temp.key);
+					writer.write("" + temp.height);	//TODO changed key to height
 					localStack.push(temp.leftChild);
 					localStack.push(temp.rightChild);
 					if (temp.leftChild != null ||
