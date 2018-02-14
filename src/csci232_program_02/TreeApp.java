@@ -90,7 +90,7 @@ public class TreeApp {
 		    			st_writer.write("Max: " + max.displayNode() + "\n\n");
 		    			break;
 		    		case "show":
-		    			theTree.displayTree(st_writer);
+		    			theTree.display_tree(st_writer);
 		    			break;
 		    		default:
 		    			st_writer.write("Invalid command!");

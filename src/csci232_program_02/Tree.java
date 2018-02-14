@@ -411,6 +411,91 @@ private Node root;                 // first Node of Tree
 		}
 	}
 
+	public void display_tree(BufferedWriter writer) throws IOException {
+		int tree_height = root.height;
+		int node_width = root.displayNode().length();
+		
+		// slightly backwards way of making a string of length node_width of '-' chars
+		String blank = String.format("%0" + node_width + "d", 0).replace('0', '-');
+		// and again with ' '
+		String filler = String.format("%0" + node_width + "d", 0).replace('0', ' ');
+		// again for the separator lines
+		String separator = String.format("%0" + node_width + "d", 0).replace('0', '=');
+		
+		// make array (length = tree_height) of stacks
+		Stack<String>[] stacks = new Stack[tree_height + 2];
+		for (int x=0; x<tree_height + 2; x++) {
+			stacks[x] = new Stack<String>();
+		}
+		
+		// recursively traverse (right to left) tree adding node.display() to the stack at index = depth
+		display_tree_helper(stacks, blank, root, 0);
+		
+		// print w/ spacers
+		int width = (int) (Math.pow(2, tree_height + 1)) + 1;
+		// loop over each tree level (backwards so the root is printed first)
+		for (int h=tree_height; h>=0; h--) {
+			// length of the spacers on the edge for a given height
+			int len_edge = (int) Math.pow(2, h);
+			// length of the spacers in the center for a given height
+			int len_cen = 0;
+			if (h != tree_height) {	// len_cen = 0 for the root level, this expression otherwise
+				len_cen = (int) (Math.pow(2, h + 1)) - 1;
+			}
+			
+			// print line separator
+			writer.write(print_repeate(separator, width));
+			writer.write("\n");
+			// print first edge
+			writer.write(print_repeate(filler, len_edge));
+			// print the nodes
+			int num_nodes_at_h = stacks[tree_height- h].size();
+			for (int i=0; i<num_nodes_at_h-1; i++) {
+				// print a node
+				writer.write(stacks[tree_height - h].pop());
+				// print the filler
+				writer.write(print_repeate(filler, len_cen));
+			}
+			// print the final node
+			writer.write(stacks[tree_height - h].pop());
+			// print the ending edge
+			writer.write(print_repeate(filler, len_edge));
+			// print new line
+			writer.write("\n");
+		}
+		// print line separator
+		writer.write(print_repeate(separator, width));
+		writer.write("\n");
+	}
+	
+	private String print_repeate(String text, int repeate) {
+		String tmp = "";
+		for (int i=0; i<repeate; i++) {
+			tmp += text;
+		}
+		return tmp;
+	}
+	
+	private void display_tree_helper(Stack<String>[] stacks, String blank, Node local_root, int depth) {
+		if (local_root != null) {
+			// traverse (right to left)
+			display_tree_helper(stacks, blank, local_root.rightChild, depth + 1);
+			display_tree_helper(stacks, blank, local_root.leftChild, depth + 1);
+			// add the current node to the stack
+			stacks[depth].add(local_root.displayNode());
+		}
+		else {
+			// add a blank to represent an empty child
+			// must also add all blanks for all the children the empty node could have had
+			int max_depth = stacks.length;
+			for (int i=0; i<max_depth-depth; i++) {
+				for (int k=0; k<(int) Math.pow(2, i); k++) {
+					stacks[depth + i].add(blank);
+				}
+			}
+		}
+	}
+	
 	// modified for general buffered writer instead of System.out.print
 	public void displayTree(BufferedWriter writer) throws IOException {
 		Stack<Node> globalStack = new Stack<Node>();

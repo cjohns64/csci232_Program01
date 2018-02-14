@@ -81,6 +81,6 @@ public class Node {
 	}
 
 	public String displayNode() { // display ourself
-		return "{" + key + ", " + dData + "} ";
+		return "" + key + "," + height;
 	}
 }

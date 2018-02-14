@@ -1,7 +1,6 @@
 insert 40,50,30,20,60,35,45,47
 find 35
 show
-delete 40
 traverse 1
 traverse 2
 traverse 3
