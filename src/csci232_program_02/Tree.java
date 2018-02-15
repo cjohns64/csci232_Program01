@@ -145,10 +145,10 @@ private Node root;                 // first Node of Tree
 		else if (child.key == key) {
 			// found it
 			if (parent == null) {
-				delete(parent, child, false);
+				delete_node(parent, child, false);
 			}
 			else {
-				delete(parent, child, (parent.key > child.key));
+				delete_node(parent, child, (parent.key > child.key));
 			}
 			success = true;
 		}
@@ -164,15 +164,20 @@ private Node root;                 // first Node of Tree
 		
 		// updates the height of the deleted node up to the root
 		// in all deletion cases these are the only changed nodes
-		// except in 2-child deletion where the parent and up must also be updated
-		// this is handled in the delete method
+		// except in 2-child deletion where the in-order-successor and up must also be updated
+		// this can't happen in the reconnect recursive function since the stack was made with the old tree structure
 		child.update_height();
 		
 		return success;
-		
 	}
 	
-	private void delete(Node parent, Node deletion, boolean isLeft) {
+	/**
+	 * Checks the 4 deletion cases for the given node, and does the appropriate one
+	 * @param parent of the deletion node
+	 * @param deletion
+	 * @param isLeft true if the deletion node is left of its parent
+	 */
+	private void delete_node(Node parent, Node deletion, boolean isLeft) {
 		// no children case
 		if (deletion.leftChild == null && deletion.rightChild == null) {
 			if (parent == null) {
@@ -193,20 +198,37 @@ private Node root;                 // first Node of Tree
 		else {
 			// successor parent's left = successor's right
 			// successor's right = successor's parent
-			// and get the successor
-			Node successor = reconnect_successor(deletion);
+			Node first_to_fix = reconnect_successor(parent, deletion, isLeft);
 			
-			if (parent != null) {
-				// set parent's relevant child to the successor
-				parent.setChild(isLeft, successor);
+			// update height along path to the former parent of the in-order-successor
+			if (parent == null) {
+				update_height_from_node(root, first_to_fix);
 			}
 			else {
-				root = successor;
+				update_height_from_node(parent, first_to_fix);
 			}
-			
-			// left successor = left deletion
-			successor.leftChild = deletion.leftChild;
 		}
+	}
+	
+	/**
+	 * Updates the height of each node directly between the to given nodes
+	 * @param start
+	 * @param end
+	 */
+	private void update_height_from_node(Node start, Node end) {
+		if (end.key != start.key) {
+			// have not found it yet
+			if (end.key < start.key) {
+				// go left
+				update_height_from_node(start.leftChild, end);
+			}
+			else {
+				// go right
+				update_height_from_node(start.rightChild, end);
+			}
+		}
+		// update the heights while unwinding
+		start.update_height();
 	}
 	
 	/**
@@ -216,37 +238,49 @@ private Node root;                 // first Node of Tree
 	 *      successor parent's left = successor's right, 
 	 *      successor's right = successor's parent
 	 * @param deletion the node being deleted
-	 * @return the in order successor
+	 * @return the parent of the in order successor
 	 */
-	private Node reconnect_successor(Node deletion) {
-		// looks bad, but will be fixed first thing in the recursive method
-		return reconnect_successor(deletion, deletion, deletion);
+	private Node reconnect_successor(Node parent, Node deletion, boolean isLeft) {
+		// looks bad, but needed in the recursive method
+		return reconnect_successor(parent, parent, deletion, deletion, isLeft);
 	}
 	
-	private Node reconnect_successor(Node parent, Node current, Node deletion) {
-		// defaults to where we are
-		Node tmp = current;
+	private Node reconnect_successor(Node parent_of_deletion, Node parent, Node current, Node deletion, boolean isLeft) {
+		// defaults to the parent of where we are
+		Node tmp = parent;
 		
 		// go right if we are just starting
 		if (current == deletion) {
-			tmp = reconnect_successor(current, current.rightChild, deletion);
+			tmp = reconnect_successor(parent_of_deletion, current, current.rightChild, deletion, isLeft);
 		}
 		// continue if we are not at the end
 		else if (current.leftChild != null) {
-			tmp = reconnect_successor(current, current.leftChild, deletion);
+			tmp = reconnect_successor(parent_of_deletion, current, current.leftChild, deletion, isLeft);
 		}
-		// found the in-order-successor
+		// found the in-order-successor (current)
 		else {
 			//make connections
 			if (current != deletion.rightChild) {
 				parent.leftChild = current.rightChild;
 				current.rightChild = deletion.rightChild;
+				// return the parent of the in-order-successor (already set up)
 			}
-			// tmp already equals current
+			
+			// set parent's relevant child to the successor
+			if (parent_of_deletion != null) {
+				parent_of_deletion.setChild(isLeft, current);
+			}
+			else {
+				root = current;
+			}
+			
+			// left successor = left deletion
+			current.leftChild = deletion.leftChild;
 		}
-		// unspooling behavior
-		current.update_height();
 		
+		// return the last node that needs its height updated
+		// the update can't happen here since the path is different now 
+		// (same nodes, but there order on the stack is inconsistent with the tree now)
 		return tmp;
 	}
 	
@@ -411,6 +445,14 @@ private Node root;                 // first Node of Tree
 		}
 	}
 
+	/**
+	 * Displays the tree as text to the given writer.
+	 * Uses the Node class's displayNode() method for each node in the tree.
+	 * Replaces null nodes with dashes of equal length to the displayNode result.
+	 * Has no restrictions on the length of each node representation or the size of the tree.
+	 * @param writer
+	 * @throws IOException
+	 */
 	public void display_tree(BufferedWriter writer) throws IOException {
 		int tree_height = root.height;
 		int node_width = root.displayNode().length();
@@ -422,13 +464,13 @@ private Node root;                 // first Node of Tree
 		// again for the separator lines
 		String separator = String.format("%0" + node_width + "d", 0).replace('0', '=');
 		
-		// make array (length = tree_height) of stacks
+		// make array (length = tree_height) of stacks, the index of each stack is its depth from the root
 		Stack<String>[] stacks = new Stack[tree_height + 2];
 		for (int x=0; x<tree_height + 2; x++) {
 			stacks[x] = new Stack<String>();
 		}
 		
-		// recursively traverse (right to left) tree adding node.display() to the stack at index = depth
+		// recursively traverse (right to left) tree adding node.displayNode() to the stack at index = depth
 		display_tree_helper(stacks, blank, root, 0);
 		
 		// print w/ spacers
@@ -468,6 +510,12 @@ private Node root;                 // first Node of Tree
 		writer.write("\n");
 	}
 	
+	/**
+	 * Prints the given text the given number of times
+	 * @param text the string to repeat
+	 * @param repeate number of times the string should be repeated
+	 * @return the input text repeated the given number of times
+	 */
 	private String print_repeate(String text, int repeate) {
 		String tmp = "";
 		for (int i=0; i<repeate; i++) {
@@ -476,6 +524,13 @@ private Node root;                 // first Node of Tree
 		return tmp;
 	}
 	
+	/**
+	 * Adds each node in the tree to a stack at the correct depth, also adds all null nodes where necessary
+	 * @param stacks array of stacks of length root.height + 2
+	 * @param blank string representation of a null node
+	 * @param local_root the local root node
+	 * @param depth the current depth from the root of the tree
+	 */
 	private void display_tree_helper(Stack<String>[] stacks, String blank, Node local_root, int depth) {
 		if (local_root != null) {
 			// traverse (right to left)
