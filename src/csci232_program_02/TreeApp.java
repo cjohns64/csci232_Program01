@@ -11,9 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * TreeApp reads the commands in input_lab2.txt and prints the results to the console, the insert method is recursive
- * @author Cory Johns
- * @version 2.8.2018
+ * Authors:  Cory Johns, Justin Keeling, Alex Harry
+ * Date: 2/14/2018
+ * Overview:
  */
 public class TreeApp {
 	public static void main(String[] args) throws IOException {
@@ -68,7 +68,7 @@ public class TreeApp {
 			    		code = getCode(line);
 			    		//boolean deleted = theTree.delete(code);
 			    		// TODO test this
-			    		boolean deleted = theTree.delete_recur(code);
+			    		boolean deleted = theTree.delete(code);
 			    		if (deleted)
 	    					st_writer.write("Deleted: " + code + "\n");
 	    				else {

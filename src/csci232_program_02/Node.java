@@ -1,7 +1,6 @@
 package csci232_program_02;
 
 /**
- * 
  * @author (Robert Lafore. 2002. Data Structures and Algorithms in Java (2 ed.). Sams, Indianapolis, IN, USA
  */
 public class Node {
@@ -36,7 +35,7 @@ public class Node {
 	
 	/**
 	 * Updates the height of the given node given all the children have correct height values or are null.
-	 * @param node
+	 * @author Cory Johns
 	 */
 	public void update_height() {
 		int tmp_height = 0;
@@ -63,6 +62,11 @@ public class Node {
 		height = tmp_height + 1;
 	}
 	
+	/**
+	 * Returns the balance of the node, negative for left heavy
+	 * @author Cory Johns
+	 * @return int representing balance
+	 */
 	public int get_balance() {
 		int tmp_height = 0;
 		int tmp_left = 0;
