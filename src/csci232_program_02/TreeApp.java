@@ -68,12 +68,12 @@ public class TreeApp {
 						code = getCode(line);
 						//boolean deleted = theTree.delete(code);
 						// TODO test this
-						boolean deleted = theTree.delete(code);
+					/*	boolean deleted = theTree.delete(code);
 						if (deleted)
 							st_writer.write("Deleted: " + code + "\n");
 						else {
 							st_writer.write(code + " not found!\n");
-						}
+						}*/
 						break;
 
 					case "traverse":
