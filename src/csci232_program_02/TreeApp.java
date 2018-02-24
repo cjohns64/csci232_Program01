@@ -22,6 +22,7 @@ public class TreeApp {
 
 		// set up file path
 		Path input_path = FileSystems.getDefault().getPath("./input", "input_lab2.txt");
+		Path outputA_path = FileSystems.getDefault().getPath("./output", "outputA.txt");
 
 		// st_writer prints to console
 		BufferedWriter st_writer = new BufferedWriter(new OutputStreamWriter(System.out));
@@ -30,6 +31,7 @@ public class TreeApp {
 		Tree theTree = new Tree();
 
 		try (BufferedReader reader = Files.newBufferedReader(input_path, charset)) {
+			BufferedWriter fileA_writer = Files.newBufferedWriter(outputA_path, charset);
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				String command = "";
@@ -48,7 +50,7 @@ public class TreeApp {
 						// print insertion nodes
 						st_writer.write("Inserting: " + insertionNodes + "\n\n");
 						// Actually insert the nodes
-						insertFunction(insertionNodes, theTree);
+						insertFunction(insertionNodes, theTree, fileA_writer);
 						break;
 
 					case "find":
@@ -66,14 +68,13 @@ public class TreeApp {
 
 					case "delete":
 						code = getCode(line);
-						//boolean deleted = theTree.delete(code);
+						boolean deleted = theTree.delete(code);
 						// TODO test this
-					/*	boolean deleted = theTree.delete(code);
 						if (deleted)
 							st_writer.write("Deleted: " + code + "\n");
 						else {
 							st_writer.write(code + " not found!\n");
-						}*/
+						}
 						break;
 
 					case "traverse":
@@ -103,14 +104,14 @@ public class TreeApp {
 
 	} // end main()
 
-	private static void insertFunction(String nodes, Tree tree) {
+	private static void insertFunction(String nodes, Tree tree, BufferedWriter wt) throws NumberFormatException, IOException {
 		// make an array of key codes in string format
 		String[] strCodes = nodes.split(",");
 
 		// insert each key in order, but don't bother if it is to short
 		for (String tmp : strCodes) {
 			if (tmp.length() > 0) {
-				tree.insert(Integer.parseInt(tmp), Integer.parseInt(tmp) + 0.9);
+				tree.insert(Integer.parseInt(tmp), Integer.parseInt(tmp) + 0.9, wt);
 			}
 		}
 

@@ -9,7 +9,9 @@ public class Node {
     public int height;			// the height of this node
     public Node leftChild;      // this Node's left child
     public Node rightChild;     // this Node's right child
-    public Node parent;         //this Node's parent
+    public Node parent;         // this Node's parent
+    // whether this node is to the left or right can be found by comparing keys
+    
     public Node(int iData, double dData) {
         this.key = iData;
         this.dData = dData;
@@ -90,6 +92,6 @@ public class Node {
     }
 
     public String displayNode() { // display ourself
-        return "" + key + ",h=" + height + ",b=" + get_balance();
+        return "" + key + "-" + height + "-" + get_balance();
     }
 }

@@ -11,6 +11,7 @@ import static java.lang.Math.abs;
  * Authors:  Cory Johns, Justin Keeling, Alex Harry
  * Date: 2/14/2018
  * Overview:
+ * TODO No implementation of critical_imbalance in input & delete
  */
 public class Tree {
     private Node root;                 // first Node of Tree
@@ -19,51 +20,74 @@ public class Tree {
         root = null;                   // no nodes in tree yet
     }
 
-
-    //TODO: create switch statement to determine case (left-left, right-right...)
     //		in case, determine how many times to rotate.
     // check every insert and deletion.
     // rotate methods to be called in delete and insert methods to balance tree.
 
-    // determines critical error and calls rotate methods. Parameter is parent node. Must be called each insert and delete.
-    public void critical_imbalance(Node node) {
-        Node newParent, child, temp;
+    /**
+     * Determines critical error and calls rotate methods. Parameter is parent node. Must be called each insert and delete.
+     * @param parent
+     * @param isLeft
+     */
+    public void critical_imbalance(Node parent, boolean isLeft) {
+    	Node node = parent.getChild(isLeft);
 
         if (node.get_balance() == 2 && node.rightChild.get_balance() == 1) { // right-right
+        	leftRotate(parent, isLeft);
         } else if (node.get_balance() == 2 && node.rightChild.get_balance() == -1) { // right-left
-           child = rightRotate(node.rightChild); // child = 70 ....
-           node.rightChild = child;
-           newParent = leftRotate(node);
-           node = newParent;
-
+        	rightRotate(node, false);
+        	leftRotate(parent, isLeft);
         } else if (node.get_balance() == -2 && node.leftChild.get_balance() == -1) { // left-left
-            //rotateParentright(node);
+        	rightRotate(parent, isLeft);
         } else if (node.get_balance() == -2 && node.leftChild.get_balance() == 1) { // left-right
-            //leftRotateChild(node);
-            //rotateParentright(node);
+            leftRotate(node, true);
+            rightRotate(parent, isLeft);
         }
 
     }
 
-    private Node rightRotate(Node y) {
-        Node x = y.leftChild; // 70 as root, 71 right
-        y.leftChild = x.rightChild; // 72 as root, 71 as left, 73 as right
-        x.rightChild = y; // 70 as root, 72 as right ....
-
-        return x;
+    /**
+     * Rotates the child of parent (given by isLeft) left
+     * @param parent of the pivot node
+     * @param isLeft is the pivot node the left child of the given parent
+     * @return pivot
+     */
+	private Node leftRotate(Node parent, boolean isLeft) {
+		Node pivot = parent.getChild(isLeft);
+        Node x = pivot.rightChild;
+        pivot.leftChild = x.leftChild;
+        x.leftChild = pivot;
+        
+        if (isLeft) {
+        	parent.leftChild = x;
+        }
+        else {
+        	parent.rightChild = x;
+        }
+        return pivot;
     }
 
-    private Node leftRotate(Node x) {
-        Node temp = x;
-        Node y = x.rightChild; // 70 as root
-        temp.rightChild = null;
-        y.leftChild = temp;
-
-
-
-        return y;
-
+	/**
+     * Rotates the child of parent (given by isLeft) right
+     * @param parent of the pivot node
+     * @param isLeft is the pivot node the left child of the given parent
+     * @return pivot
+     */
+    private Node rightRotate(Node parent, boolean isLeft) {
+        Node pivot = parent.getChild(isLeft);
+        Node x = pivot.leftChild;
+        pivot.rightChild = x.rightChild;
+        x.rightChild = pivot;
+        
+        if (isLeft) {
+        	parent.leftChild = x;
+        }
+        else {
+        	parent.rightChild = x;
+        }
+        return pivot;
     }
+    
 
     /**
      * Finds the node with the given key iteratively
@@ -128,10 +152,10 @@ public class Tree {
 
 
 
-    public boolean follow_path(int key) {
+    private boolean follow_path(int key) {
         Node current = root;         // (assumes non-empty tree)
         while (current.key != key && current != null) {          // while no match
-            critical_imbalance(current);
+            //critical_imbalance(current);
             if (key < current.key) {          // go left?
                 current = current.leftChild;
             } else {                              // or go right?
@@ -192,9 +216,10 @@ public class Tree {
      *
      * @param key
      * @param dd
+     * @throws IOException 
      */
-    public void insert(int key, double dd) {
-        Node insert = insert(root, new Node(key, dd));
+    public void insert(int key, double dd, BufferedWriter wt) throws IOException {
+        Node insert = insert(root, new Node(key, dd), wt);
 
     }
 
@@ -204,8 +229,9 @@ public class Tree {
      * @param local_root
      * @param insert_node
      * @return the parent of the inserted node
+     * @throws IOException 
      */
-    private Node insert(Node local_root, Node insert_node) {
+    private Node insert(Node local_root, Node insert_node, BufferedWriter wt) throws IOException {
 
         Node tmp_root = local_root;
 
@@ -226,7 +252,7 @@ public class Tree {
 
             } else {
                 // recur with sub tree (left)
-                tmp_root = insert(local_root.leftChild, insert_node);
+                tmp_root = insert(local_root.leftChild, insert_node, wt);
             }
 
 
@@ -243,8 +269,7 @@ public class Tree {
                 local_root.rightChild.update_height();
             } else {
                 // recur with sub tree (right)
-
-                tmp_root = insert(local_root.rightChild, insert_node);
+                tmp_root = insert(local_root.rightChild, insert_node, wt);
             }
 
         }
@@ -253,7 +278,11 @@ public class Tree {
         // update height of this node
         if (local_root != null) {
             local_root.update_height();
-            critical_imbalance(local_root);
+            wt.write("<<<<<<<<<>>>>>>>>>\n");
+            display_tree(wt);
+            //critical_imbalance(local_root);
+            wt.write("||||||||||||||||||\n");
+            display_tree(wt);
         }
         // return parent of the inserted node
         return tmp_root;
