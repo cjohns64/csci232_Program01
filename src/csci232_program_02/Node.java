@@ -74,8 +74,8 @@ public class Node {
      */
     public int get_balance() {
         int tmp_height = 0;
-        int tmp_left = 0;
-        int tmp_right = 0;
+        int tmp_left = -1;
+        int tmp_right = -1;
 
         // set height of null children to 0
         if (leftChild != null) {
@@ -90,6 +90,6 @@ public class Node {
     }
 
     public String displayNode() { // display ourself
-        return "" + key + "," + height;
+        return "" + key + ",h=" + height + ",b=" + get_balance();
     }
 }
