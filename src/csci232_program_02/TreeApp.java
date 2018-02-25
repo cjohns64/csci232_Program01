@@ -59,7 +59,6 @@ public class TreeApp {
 						// find the node
 						Node found = theTree.find(code);
 						if (found != null)
-							// print the ode!
 							st_writer.write("Found: " + found.displayNode() + "\n\n");
 						else {
 							st_writer.write(code + " not found!\n\n");
@@ -99,6 +98,8 @@ public class TreeApp {
 			}
 		} catch (IOException x) {
 			System.out.println("IOException: " + x);
+		} catch (StackOverflowError e) {
+			System.out.println("StackOverflowError");
 		}
 		st_writer.close();
 

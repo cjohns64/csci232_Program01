@@ -2,10 +2,7 @@ package csci232_program_02;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Stack;
-
-import static java.lang.Math.abs;
 
 /**
  * Authors:  Cory Johns, Justin Keeling, Alex Harry
@@ -20,74 +17,74 @@ public class Tree {
         root = null;                   // no nodes in tree yet
     }
 
-    //		in case, determine how many times to rotate.
-    // check every insert and deletion.
-    // rotate methods to be called in delete and insert methods to balance tree.
-
     /**
-     * Determines critical error and calls rotate methods. Parameter is parent node. Must be called each insert and delete.
-     * @param parent
-     * @param isLeft
+     * Determines critical error and calls rotate methods. Parameter is the node with the imbalance.
+     * if the node is not critically imbalanced the method will do nothing
+     * Must be called each insert and delete.
+     * @param node to check, and possibly fix
      */
-    public void critical_imbalance(Node parent, boolean isLeft) {
-    	Node node = parent.getChild(isLeft);
-
-        if (node.get_balance() == 2 && node.rightChild.get_balance() == 1) { // right-right
-        	leftRotate(parent, isLeft);
-        } else if (node.get_balance() == 2 && node.rightChild.get_balance() == -1) { // right-left
-        	rightRotate(node, false);
-        	leftRotate(parent, isLeft);
-        } else if (node.get_balance() == -2 && node.leftChild.get_balance() == -1) { // left-left
-        	rightRotate(parent, isLeft);
-        } else if (node.get_balance() == -2 && node.leftChild.get_balance() == 1) { // left-right
-            leftRotate(node, true);
-            rightRotate(parent, isLeft);
-        }
-
-    }
-
-    /**
-     * Rotates the child of parent (given by isLeft) left
-     * @param parent of the pivot node
-     * @param isLeft is the pivot node the left child of the given parent
-     * @return pivot
-     */
-	private Node leftRotate(Node parent, boolean isLeft) {
-		Node pivot = parent.getChild(isLeft);
-        Node x = pivot.rightChild;
-        pivot.leftChild = x.leftChild;
-        x.leftChild = pivot;
-        
-        if (isLeft) {
-        	parent.leftChild = x;
-        }
-        else {
-        	parent.rightChild = x;
-        }
-        return pivot;
-    }
-
-	/**
-     * Rotates the child of parent (given by isLeft) right
-     * @param parent of the pivot node
-     * @param isLeft is the pivot node the left child of the given parent
-     * @return pivot
-     */
-    private Node rightRotate(Node parent, boolean isLeft) {
-        Node pivot = parent.getChild(isLeft);
-        Node x = pivot.leftChild;
-        pivot.rightChild = x.rightChild;
-        x.rightChild = pivot;
-        
-        if (isLeft) {
-        	parent.leftChild = x;
-        }
-        else {
-        	parent.rightChild = x;
-        }
-        return pivot;
+    public void critical_imbalance(Node node) {
+        if (node.get_balance() == 2 && node.getRightChild().get_balance() == 1) { // right-right
+        	// rotate left around parent
+        	leftRotate(node);
+        } else if (node.get_balance() == 2 && node.getRightChild().get_balance() == -1) { // right-left
+        	// rotate right around child
+        	rightRotate(node.getRightChild());
+        	// rotate left around parent
+        	leftRotate(node);
+        } else if (node.get_balance() == -2 && node.getLeftChild().get_balance() == -1) { // left-left
+        	// rotate right around parent
+        	rightRotate(node);
+        } else if (node.get_balance() == -2 && node.getLeftChild().get_balance() == 1) { // left-right
+        	// rotate left around child
+        	leftRotate(node.getLeftChild());
+        	// rotate right around parent
+        	rightRotate(node);
+        } // else no critical imbalance
     }
     
+    /**
+     * Rotates the subtree rooted at the given pivot, left
+     * @param pivot root of subtree to rotate
+     * @return the new pivot
+     */
+    private Node leftRotate(Node pivot) {
+    	return generalRotate(pivot, true);
+    }
+    
+    /**
+     * Rotates the subtree rooted at the given pivot, right
+     * @param pivot root of subtree to rotate
+     * @return the new pivot
+     */
+    private Node rightRotate(Node pivot) {
+    	return generalRotate(pivot, false);
+    }
+    
+    /**
+     * Rotates the subtree rooted at the given pivot, either left or right (given by rotateLeft)
+     * @param pivot root of subtree to rotate
+     * @param rotateLeft true if rotating left
+     * @return the new pivot
+     */
+    private Node generalRotate(Node pivot, boolean rotateLeft) {
+        Node x = pivot.getChild(!rotateLeft);
+        Node parent = pivot.parent;
+        // rotate nodes
+        pivot.setChild(!rotateLeft, x.getChild(rotateLeft));
+        x.setChild(rotateLeft, pivot);
+        
+        // set x as the new local root
+        if (parent != null) {
+        	parent.setChild((pivot.key < parent.key), x);
+        }
+        
+        // update height of affected nodes
+        pivot.update_height();
+        x.update_height();
+        
+        return x;
+    }
 
     /**
      * Finds the node with the given key iteratively
@@ -100,9 +97,9 @@ public class Tree {
         Node current = root;         // (assumes non-empty tree)
         while (current.key != key) {          // while no match
             if (key < current.key) {          // go left?
-                current = current.leftChild;
+                current = current.getLeftChild();
             } else {                              // or go right?
-                current = current.rightChild;
+                current = current.getRightChild();
             }
             if (current == null)                 // if no child
             {                                   // didn't find it
@@ -122,8 +119,8 @@ public class Tree {
     public Node findMin() {
         Node current = root;
         while (current != null) {
-            if (current.leftChild != null) {
-                current = current.leftChild;
+            if (current.getLeftChild() != null) {
+                current = current.getLeftChild();
             } else {
                 break;
             }
@@ -141,8 +138,8 @@ public class Tree {
     public Node findMax() {
         Node current = root;
         while (current != null) {
-            if (current.rightChild != null) {
-                current = current.rightChild;
+            if (current.getRightChild() != null) {
+                current = current.getRightChild();
             } else {
                 break;
             }
@@ -157,9 +154,9 @@ public class Tree {
         while (current.key != key && current != null) {          // while no match
             //critical_imbalance(current);
             if (key < current.key) {          // go left?
-                current = current.leftChild;
+                current = current.getLeftChild();
             } else {                              // or go right?
-                current = current.rightChild;
+                current = current.getRightChild();
             }
             if (current == null)                 // if no child
             {                                   // didn't find it
@@ -174,14 +171,14 @@ public class Tree {
 
         while (pathfollowed == false && current == inserted) {          // while no match
            // critical_imbalance(current);
-            if (key < current.key && current.leftChild != null) {          // go left?
-                current = current.leftChild;
+            if (key < current.key && current.getLeftChild() != null) {          // go left?
+                current = current.getLeftChild();
                 critical_imbalance(current);
 
-            } else if(key > current.key && current.rightChild != null){
-                current = current.rightChild;
+            } else if(key > current.key && current.getRightChild() != null){
+                current = current.getRightChild();
                 critical_imbalance(current);// or go right?
-                //current = current.rightChild;
+                //current = current.getRightChild();
             }
             else{
                 pathfollowed = true;
@@ -192,15 +189,15 @@ public class Tree {
         boolean path = false;
         while(path == false){
         if(inserted.key < temp.key){
-           temp = temp.leftChild;
+           temp = temp.getLeftChild();
         }
         else if(inserted.key > temp.key){
-            temp = temp.rightChild;
+            temp = temp.getRightChild();
         }
         else if(temp.key == inserted.key){
             path= true;
         }
-        else if(temp.rightChild == null && temp.leftChild == null) {
+        else if(temp.getRightChild() == null && temp.getLeftChild() == null) {
             path = true;
         }
         if(temp.get_balance() > 1 || temp.get_balance() < -1){
@@ -219,8 +216,7 @@ public class Tree {
      * @throws IOException 
      */
     public void insert(int key, double dd, BufferedWriter wt) throws IOException {
-        Node insert = insert(root, new Node(key, dd), wt);
-
+        insert(root, new Node(key, dd), wt);
     }
 
     /**
@@ -232,7 +228,6 @@ public class Tree {
      * @throws IOException 
      */
     private Node insert(Node local_root, Node insert_node, BufferedWriter wt) throws IOException {
-
         Node tmp_root = local_root;
 
         if (root == null) {
@@ -242,34 +237,31 @@ public class Tree {
         // check if we should go left
         else if (insert_node.key < local_root.key) {
             // check if we should insert the node
-            if (local_root.leftChild == null) {
+            if (local_root.getLeftChild() == null) {
                 // insert the node
-
-                local_root.leftChild = insert_node;
-                local_root.leftChild.parent = local_root;
+                local_root.setChild(true, insert_node);
+                local_root.getLeftChild().parent = local_root;
                 // update height of the inserted node
-                local_root.leftChild.update_height();
+                local_root.getLeftChild().update_height();
 
             } else {
                 // recur with sub tree (left)
-                tmp_root = insert(local_root.leftChild, insert_node, wt);
+                tmp_root = insert(local_root.getLeftChild(), insert_node, wt);
             }
-
-
         }
         // we should go right
         else {
             // check if we should insert the node
-            if (local_root.rightChild == null) {
+            if (local_root.getRightChild() == null) {
                 // insert the node
 
-                local_root.rightChild = insert_node;
-                local_root.rightChild.parent = local_root;
+                local_root.setChild(false, insert_node);
+                local_root.getRightChild().parent = local_root;
                 // update height of the inserted node
-                local_root.rightChild.update_height();
+                local_root.getRightChild().update_height();
             } else {
                 // recur with sub tree (right)
-                tmp_root = insert(local_root.rightChild, insert_node, wt);
+                tmp_root = insert(local_root.getRightChild(), insert_node, wt);
             }
 
         }
@@ -280,7 +272,7 @@ public class Tree {
             local_root.update_height();
             wt.write("<<<<<<<<<>>>>>>>>>\n");
             display_tree(wt);
-            //critical_imbalance(local_root);
+            critical_imbalance(local_root);
             wt.write("||||||||||||||||||\n");
             display_tree(wt);
         }
@@ -296,29 +288,28 @@ public class Tree {
      */
     public boolean delete(int key) {
         // start at the root with no parent
-        return delete_recur(null, root, key);
+        return delete_recur(root, key);
     }
 
-    private boolean delete_recur(Node parent, Node child, int key) {
+    @SuppressWarnings("unused")		// it thinks child != null but it can if key is not in the tree
+	private boolean delete_recur(Node child, int key) {
         boolean success;
+        Node parent = child.parent;
+        boolean isLeft = parent.key > child.key;
 
         if (child == null) {
             // not in tree
             success = false;
         } else if (child.key == key) {
             // found
-            if (parent == null) {
-                delete_node(parent, child, false);
-            } else {
-                delete_node(parent, child, (parent.key > child.key));
-            }
+        	delete_node(child);
             success = true;
         } else if (child.key > key) {
             // go left
-            success = delete_recur(child, child.leftChild, key);
+            success = delete_recur(child.getLeftChild(), key);
         } else {
             // go right
-            success = delete_recur(child, child.rightChild, key);
+            success = delete_recur(child.getRightChild(), key);
         }
         // unspooling behavior
 
@@ -338,9 +329,13 @@ public class Tree {
      * @param deletion
      * @param isLeft   true if the deletion node is left of its parent
      */
-    private void delete_node(Node parent, Node deletion, boolean isLeft) {
+    @SuppressWarnings("unused")	// is thinks parent != null, but it can if deletion is the root
+	private void delete_node(Node deletion) {
+    	Node parent = deletion.parent;
+    	boolean isLeft = parent.key > deletion.key;
+    	
         // no children case
-        if (deletion.leftChild == null && deletion.rightChild == null) {
+        if (deletion.getLeftChild() == null && deletion.getRightChild() == null) {
             if (parent == null) {
                 // TODO there are no nodes in the tree!
                 root = null;
@@ -350,9 +345,9 @@ public class Tree {
             }
         }
         // one child case
-        else if (deletion.leftChild == null || deletion.rightChild == null) {
+        else if (deletion.getLeftChild() == null || deletion.getRightChild() == null) {
             // cut out node by reassigning its parent to its child
-            parent.setChild(isLeft, deletion.getChild(deletion.leftChild != null));
+            parent.setChild(isLeft, deletion.getChild(deletion.getLeftChild() != null));
         }
         // two children case
         else {
@@ -380,10 +375,10 @@ public class Tree {
             // have not found it yet
             if (end.key < start.key) {
                 // go left
-                update_height_from_node(start.leftChild, end);
+                update_height_from_node(start.getLeftChild(), end);
             } else {
                 // go right
-                update_height_from_node(start.rightChild, end);
+                update_height_from_node(start.getRightChild(), end);
             }
         }
         // update the heights while unwinding
@@ -411,18 +406,18 @@ public class Tree {
 
         // go right if we are just starting
         if (current == deletion) {
-            tmp = reconnect_successor(parent_of_deletion, current, current.rightChild, deletion, isLeft);
+            tmp = reconnect_successor(parent_of_deletion, current, current.getRightChild(), deletion, isLeft);
         }
         // continue if we are not at the end
-        else if (current.leftChild != null) {
-            tmp = reconnect_successor(parent_of_deletion, current, current.leftChild, deletion, isLeft);
+        else if (current.getLeftChild() != null) {
+            tmp = reconnect_successor(parent_of_deletion, current, current.getLeftChild(), deletion, isLeft);
         }
         // found the in-order-successor (current)
         else {
             //make connections
-            if (current != deletion.rightChild) {
-                parent.leftChild = current.rightChild;
-                current.rightChild = deletion.rightChild;
+            if (current != deletion.getRightChild()) {
+                parent.setChild(true, current.getRightChild());
+                current.setChild(false, deletion.getRightChild());
                 // return the parent of the in-order-successor (already set up)
             }
 
@@ -434,7 +429,7 @@ public class Tree {
             }
 
             // left successor = left deletion
-            current.leftChild = deletion.leftChild;
+            current.setChild(true, deletion.getLeftChild());
         }
 
         // return the last node that needs its height updated
@@ -483,8 +478,8 @@ public class Tree {
     private void preOrder(Node localRoot, BufferedWriter writer) throws IOException {
         if (localRoot != null) {
             writer.write(localRoot.key + " ");
-            preOrder(localRoot.leftChild, writer);
-            preOrder(localRoot.rightChild, writer);
+            preOrder(localRoot.getLeftChild(), writer);
+            preOrder(localRoot.getRightChild(), writer);
         }
     }
 
@@ -498,9 +493,9 @@ public class Tree {
      */
     private void inOrder(Node localRoot, BufferedWriter writer) throws IOException {
         if (localRoot != null) {
-            inOrder(localRoot.leftChild, writer);
+            inOrder(localRoot.getLeftChild(), writer);
             writer.write(localRoot.key + " ");
-            inOrder(localRoot.rightChild, writer);
+            inOrder(localRoot.getRightChild(), writer);
         }
     }
 
@@ -514,8 +509,8 @@ public class Tree {
      */
     private void postOrder(Node localRoot, BufferedWriter writer) throws IOException {
         if (localRoot != null) {
-            postOrder(localRoot.leftChild, writer);
-            postOrder(localRoot.rightChild, writer);
+            postOrder(localRoot.getLeftChild(), writer);
+            postOrder(localRoot.getRightChild(), writer);
             writer.write(localRoot.key + " ");
         }
     }
@@ -530,7 +525,7 @@ public class Tree {
      * @throws IOException
      */
     public void display_tree(BufferedWriter writer) throws IOException {
-        int tree_height = root.height;
+        int tree_height = root.height + 1;
         int node_width = root.displayNode().length();
 
         // slightly backwards way of making a string of length node_width of '-' chars
@@ -612,8 +607,8 @@ public class Tree {
     private void display_tree_helper(Stack<String>[] stacks, String blank, Node local_root, int depth) {
         if (local_root != null) {
             // traverse (right to left)
-            display_tree_helper(stacks, blank, local_root.rightChild, depth + 1);
-            display_tree_helper(stacks, blank, local_root.leftChild, depth + 1);
+            display_tree_helper(stacks, blank, local_root.getRightChild(), depth + 1);
+            display_tree_helper(stacks, blank, local_root.getLeftChild(), depth + 1);
             // add the current node to the stack
             stacks[depth].add(local_root.displayNode());
         } else {

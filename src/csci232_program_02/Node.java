@@ -7,20 +7,45 @@ public class Node {
     public int key;           	// data item (key)
     public double dData;        // data item
     public int height;			// the height of this node
-    public Node leftChild;      // this Node's left child
-    public Node rightChild;     // this Node's right child
+    // do to parent field all assignments to the children must go through setChild
+    private Node leftChild;      // this Node's left child
+    private Node rightChild;     // this Node's right child
     public Node parent;         // this Node's parent
     // whether this node is to the left or right can be found by comparing keys
     
     public Node(int iData, double dData) {
         this.key = iData;
         this.dData = dData;
+        this.leftChild = null;
+        this.rightChild = null;
+        this.parent = null;
     }
 
     public int getI(){
         return key;
     }
 
+    /**
+     * Gets the left child of the current node
+     * @return left child
+     */
+    public Node getLeftChild() {
+    	return getChild(true);
+    }
+    
+    /**
+     * Gets the right child of the current node
+     * @return right child
+     */
+    public Node getRightChild() {
+    	return getChild(false);
+    }
+    
+    /**
+     * Gets either the right or the left child of the current node (given by isLeft)
+     * @param isLeft true if getting the left child
+     * @return left or right child
+     */
     public Node getChild(boolean isLeft) {
         if (isLeft) {
             return leftChild;
@@ -30,12 +55,20 @@ public class Node {
         }
     }
 
+    /**
+     * Sets the left or right child (given by isLeft) of this node to the given value
+     * @param isLeft true if it is the left child
+     * @param value to set child to
+     */
     public void setChild(boolean isLeft, Node value) {
+    	// System.out.println(this + ", " + value + ", " + leftChild + ", " + rightChild);
         if (isLeft) {
             leftChild = value;
+            if (value != null) leftChild.parent = this;
         }
         else {
             rightChild = value;
+            if (value != null) rightChild.parent = this;
         }
     }
 
@@ -75,7 +108,6 @@ public class Node {
      * @return int representing balance
      */
     public int get_balance() {
-        int tmp_height = 0;
         int tmp_left = -1;
         int tmp_right = -1;
 
