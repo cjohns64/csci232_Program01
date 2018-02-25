@@ -98,8 +98,6 @@ public class TreeApp {
 			}
 		} catch (IOException x) {
 			System.out.println("IOException: " + x);
-		} catch (StackOverflowError e) {
-			System.out.println("StackOverflowError");
 		}
 		st_writer.close();
 

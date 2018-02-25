@@ -1,6 +1,8 @@
 insert 19,6,26,11,35,23,18,48,40,9,24,27,33,2,12,8,7
 find 35
 show
+delete 6
+delete 40
 traverse 1
 traverse 2
 traverse 3

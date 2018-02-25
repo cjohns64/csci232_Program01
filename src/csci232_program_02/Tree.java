@@ -147,67 +147,6 @@ public class Tree {
         return current;
     }
 
-
-
-    private boolean follow_path(int key) {
-        Node current = root;         // (assumes non-empty tree)
-        while (current.key != key && current != null) {          // while no match
-            //critical_imbalance(current);
-            if (key < current.key) {          // go left?
-                current = current.getLeftChild();
-            } else {                              // or go right?
-                current = current.getRightChild();
-            }
-            if (current == null)                 // if no child
-            {                                   // didn't find it
-                return false;
-            }
-        }
-        return true;
-        // found it
-        /*int key = inserted.key;
-        Node current = root;         // (assumes non-empty tree)
-        boolean pathfollowed = false;
-
-        while (pathfollowed == false && current == inserted) {          // while no match
-           // critical_imbalance(current);
-            if (key < current.key && current.getLeftChild() != null) {          // go left?
-                current = current.getLeftChild();
-                critical_imbalance(current);
-
-            } else if(key > current.key && current.getRightChild() != null){
-                current = current.getRightChild();
-                critical_imbalance(current);// or go right?
-                //current = current.getRightChild();
-            }
-            else{
-                pathfollowed = true;
-            }
-        }
-*/
-        /*Node temp = root;
-        boolean path = false;
-        while(path == false){
-        if(inserted.key < temp.key){
-           temp = temp.getLeftChild();
-        }
-        else if(inserted.key > temp.key){
-            temp = temp.getRightChild();
-        }
-        else if(temp.key == inserted.key){
-            path= true;
-        }
-        else if(temp.getRightChild() == null && temp.getLeftChild() == null) {
-            path = true;
-        }
-        if(temp.get_balance() > 1 || temp.get_balance() < -1){
-            critical_imbalance(temp);
-            path = true;
-        }
-
-        }*/
-
-    }
     /**
      * Inserts a new node with the given key and double data
      *
@@ -291,25 +230,24 @@ public class Tree {
         return delete_recur(root, key);
     }
 
-    @SuppressWarnings("unused")		// it thinks child != null but it can if key is not in the tree
-	private boolean delete_recur(Node child, int key) {
+    @SuppressWarnings("unused")		// it thinks current != null but it can if key is not in the tree
+	private boolean delete_recur(Node current, int key) {
         boolean success;
-        Node parent = child.parent;
-        boolean isLeft = parent.key > child.key;
+        Node parent = current.parent;
 
-        if (child == null) {
+        if (current == null) {
             // not in tree
             success = false;
-        } else if (child.key == key) {
+        } else if (current.key == key) {
             // found
-        	delete_node(child);
+        	delete_node(current);
             success = true;
-        } else if (child.key > key) {
+        } else if (current.key > key) {
             // go left
-            success = delete_recur(child.getLeftChild(), key);
+            success = delete_recur(current.getLeftChild(), key);
         } else {
             // go right
-            success = delete_recur(child.getRightChild(), key);
+            success = delete_recur(current.getRightChild(), key);
         }
         // unspooling behavior
 
@@ -317,7 +255,8 @@ public class Tree {
         // in all deletion cases these are the only changed nodes
         // except in 2-child deletion where the in-order-successor and up must also be updated
         // this can't happen in the reconnect recursive function since the stack was made with the old tree structure
-        child.update_height();
+        current.update_height();
+        critical_imbalance(current);
 
         return success;
     }
@@ -329,10 +268,16 @@ public class Tree {
      * @param deletion
      * @param isLeft   true if the deletion node is left of its parent
      */
-    @SuppressWarnings("unused")	// is thinks parent != null, but it can if deletion is the root
 	private void delete_node(Node deletion) {
     	Node parent = deletion.parent;
-    	boolean isLeft = parent.key > deletion.key;
+    	boolean isLeft;
+    	if (parent != null) {
+    		isLeft = parent.key > deletion.key;
+    	}
+    	else {
+    		isLeft = false;
+    	}
+    	
     	
         // no children case
         if (deletion.getLeftChild() == null && deletion.getRightChild() == null) {
@@ -347,13 +292,18 @@ public class Tree {
         // one child case
         else if (deletion.getLeftChild() == null || deletion.getRightChild() == null) {
             // cut out node by reassigning its parent to its child
-            parent.setChild(isLeft, deletion.getChild(deletion.getLeftChild() != null));
+        	if (parent == null) {
+        		root = deletion.getChild(deletion.getLeftChild() != null);
+        	}
+        	else {
+        		parent.setChild(isLeft, deletion.getChild(deletion.getLeftChild() != null));
+        	}
         }
         // two children case
         else {
             // successor parent's left = successor's right
             // successor's right = successor's parent
-            Node first_to_fix = reconnect_successor(parent, deletion, isLeft);
+            Node first_to_fix = reconnect_successor(deletion);
 
             // update height along path to the former parent of the in-order-successor
             if (parent == null) {
@@ -395,35 +345,34 @@ public class Tree {
      * @param deletion the node being deleted
      * @return the parent of the in order successor
      */
-    private Node reconnect_successor(Node parent, Node deletion, boolean isLeft) {
-        // looks bad, but needed in the recursive method
-        return reconnect_successor(parent, parent, deletion, deletion, isLeft);
+    private Node reconnect_successor(Node deletion) {
+        return reconnect_successor(deletion.parent, deletion, deletion);
     }
 
-    private Node reconnect_successor(Node parent_of_deletion, Node parent, Node current, Node deletion, boolean isLeft) {
-        // defaults to the parent of where we are
-        Node tmp = parent;
+    private Node reconnect_successor(Node parent_of_deletion, Node deletion, Node current) {
+        // defaults to where we are
+        Node node_return = current;
 
         // go right if we are just starting
         if (current == deletion) {
-            tmp = reconnect_successor(parent_of_deletion, current, current.getRightChild(), deletion, isLeft);
+            node_return = reconnect_successor(parent_of_deletion, deletion, current.getRightChild());
         }
         // continue if we are not at the end
         else if (current.getLeftChild() != null) {
-            tmp = reconnect_successor(parent_of_deletion, current, current.getLeftChild(), deletion, isLeft);
+            node_return = reconnect_successor(parent_of_deletion, deletion, current.getLeftChild());
         }
         // found the in-order-successor (current)
         else {
             //make connections
             if (current != deletion.getRightChild()) {
-                parent.setChild(true, current.getRightChild());
+            	current.parent.setChild(true, current.getRightChild());
                 current.setChild(false, deletion.getRightChild());
                 // return the parent of the in-order-successor (already set up)
             }
 
             // set parent's relevant child to the successor
             if (parent_of_deletion != null) {
-                parent_of_deletion.setChild(isLeft, current);
+                parent_of_deletion.setChild((parent_of_deletion.key > deletion.key), current);
             } else {
                 root = current;
             }
@@ -435,7 +384,7 @@ public class Tree {
         // return the last node that needs its height updated
         // the update can't happen here since the path is different now
         // (same nodes, but there order on the stack is inconsistent with the tree now)
-        return tmp;
+        return node_return;
     }
 
     // modified for general buffered writer instead of System.out.print
