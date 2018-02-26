@@ -8,7 +8,6 @@ import java.util.Stack;
  * Authors:  Cory Johns, Justin Keeling, Alex Harry
  * Date: 2/14/2018
  * Overview:
- * TODO No implementation of critical_imbalance in input & delete
  */
 public class Tree {
     private Node root;                 // first Node of Tree
@@ -23,7 +22,7 @@ public class Tree {
      * Must be called each insert and delete.
      * @param node to check, and possibly fix
      */
-    public void critical_imbalance(Node node) {
+    private void critical_imbalance(Node node) {
         if (node.get_balance() == 2 && node.getRightChild().get_balance() == 1) { // right-right
         	// rotate left around parent
         	leftRotate(node);
@@ -41,6 +40,81 @@ public class Tree {
         	// rotate right around parent
         	rightRotate(node);
         } // else no critical imbalance
+    }
+    
+    /**
+     * Determines critical error and calls rotate methods. Parameter is the node with the imbalance.
+     * if the node is not critically imbalanced the method will do nothing
+     * Must be called each insert and delete.
+     * @param z the node to check, and possibly fix
+     */
+    private void do_critical_imbalance(Node z) {
+    	// check if there is a critical imbalance
+    	if (z.height == 2 || z.height == -2) {
+    		// y will be the greatest height child of z
+        	Node y;
+        	// x will be the greatest height child of y
+        	Node x;
+        	
+        	// reusable height vars
+        	int tmp_height_left = -1;
+        	int tmp_height_right = -1;
+        	
+        	// get heights
+        	if (z.getLeftChild() != null) {
+        		tmp_height_left = z.getLeftChild().height;
+        	}
+        	if (z.getRightChild() != null) {
+        		tmp_height_right = z.getRightChild().height;
+        	}
+        	// set y
+        	y = z.getChild(tmp_height_left > tmp_height_right);
+        	// reset null heights
+        	tmp_height_left = -1;
+        	tmp_height_right = -1;
+        	
+        	// get heights
+        	if (y.getLeftChild() != null) {
+        		tmp_height_left = y.getLeftChild().height;
+        	}
+        	if (y.getRightChild() != null) {
+        		tmp_height_right = y.getRightChild().height;
+        	}
+        	// set x
+        	x = y.getChild(tmp_height_left > tmp_height_right);
+        	
+        	// find which of the 4 conditions apply
+        	// Left-
+        	if (z.key > y.key) {
+        		// Left
+        		if (y.key > x.key) {
+        			// rotate right around parent
+                	rightRotate(z);
+        		}
+        		// Right
+        		else {
+        			// rotate left around child
+                	leftRotate(y);
+                	// rotate right around parent
+                	rightRotate(z);
+        		}
+        	}
+        	// Right-
+        	else {
+        		// Left
+        		if (y.key > x.key) {
+        			// rotate right around child
+                	rightRotate(y);
+                	// rotate left around parent
+                	leftRotate(z);
+        		}
+        		// Right
+        		else {
+        			// rotate left around parent
+                	leftRotate(z);
+        		}
+        	}
+    	}
     }
     
     /**
@@ -211,7 +285,7 @@ public class Tree {
             local_root.update_height();
             wt.write("<<<<<<<<<>>>>>>>>>\n");
             display_tree(wt);
-            critical_imbalance(local_root);
+            do_critical_imbalance(local_root);
             wt.write("||||||||||||||||||\n");
             display_tree(wt);
         }
@@ -256,7 +330,7 @@ public class Tree {
         // except in 2-child deletion where the in-order-successor and up must also be updated
         // this can't happen in the reconnect recursive function since the stack was made with the old tree structure
         current.update_height();
-        critical_imbalance(current);
+        do_critical_imbalance(current);
 
         return success;
     }
