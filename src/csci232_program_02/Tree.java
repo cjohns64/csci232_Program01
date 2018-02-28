@@ -6,8 +6,8 @@ import java.util.Stack;
 
 /**
  * Authors:  Cory Johns, Justin Keeling, Alex Harry
- * Date: 2/14/2018
- * Overview:
+ * Date: 2/27/2018
+ * Overview: Contains all the methods needed to implement an AVL tree.
  */
 public class Tree {
     private Node root;                 // first Node of Tree
@@ -22,99 +22,41 @@ public class Tree {
      * Must be called each insert and delete.
      * @param node to check, and possibly fix
      */
-    private void critical_imbalance(Node node) {
-        if (node.get_balance() == 2 && node.getRightChild().get_balance() == 1) { // right-right
-        	// rotate left around parent
-        	leftRotate(node);
-        } else if (node.get_balance() == 2 && node.getRightChild().get_balance() == -1) { // right-left
-        	// rotate right around child
-        	rightRotate(node.getRightChild());
-        	// rotate left around parent
-        	leftRotate(node);
-        } else if (node.get_balance() == -2 && node.getLeftChild().get_balance() == -1) { // left-left
-        	// rotate right around parent
-        	rightRotate(node);
-        } else if (node.get_balance() == -2 && node.getLeftChild().get_balance() == 1) { // left-right
-        	// rotate left around child
-        	leftRotate(node.getLeftChild());
-        	// rotate right around parent
-        	rightRotate(node);
+    private void critical_imbalance(Node node) {      
+        if (node.get_balance() == 2) {
+        	// right-right
+        	if (node.getRightChild().get_balance() == 1 
+        			|| (node.getRightChild().get_balance() == 0 
+        			&& node.getLeftChild() == null
+        			&& node.getRightChild() != null)) {
+        		// rotate left around parent
+            	leftRotate(node);
+        	}
+        	// right-left
+        	else if (node.getRightChild().get_balance() == -1) {
+        		// rotate right around child
+            	rightRotate(node.getRightChild());
+            	// rotate left around parent
+            	leftRotate(node);
+        	}
+        }
+        else if (node.get_balance() == -2) {
+        	// left-left
+        	if (node.getLeftChild().get_balance() == -1 
+        			|| (node.getLeftChild().get_balance() == 0 
+        			&& node.getRightChild() == null 
+        			&& node.getLeftChild() != null)) {
+        		// rotate right around parent
+            	rightRotate(node);
+        	}
+        	// left-right
+        	else if (node.getLeftChild().get_balance() == 1) {
+        		// rotate left around child
+            	leftRotate(node.getLeftChild());
+            	// rotate right around parent
+            	rightRotate(node);
+        	}
         } // else no critical imbalance
-    }
-    
-    /**
-     * Determines critical error and calls rotate methods. Parameter is the node with the imbalance.
-     * if the node is not critically imbalanced the method will do nothing
-     * Must be called each insert and delete.
-     * @param z the node to check, and possibly fix
-     */
-    private void do_critical_imbalance(Node z) {
-    	// check if there is a critical imbalance
-    	if (z.height == 2 || z.height == -2) {
-    		// y will be the greatest height child of z
-        	Node y;
-        	// x will be the greatest height child of y
-        	Node x;
-        	
-        	// reusable height vars
-        	int tmp_height_left = -1;
-        	int tmp_height_right = -1;
-        	
-        	// get heights
-        	if (z.getLeftChild() != null) {
-        		tmp_height_left = z.getLeftChild().height;
-        	}
-        	if (z.getRightChild() != null) {
-        		tmp_height_right = z.getRightChild().height;
-        	}
-        	// set y
-        	y = z.getChild(tmp_height_left > tmp_height_right);
-        	// reset null heights
-        	tmp_height_left = -1;
-        	tmp_height_right = -1;
-        	
-        	// get heights
-        	if (y.getLeftChild() != null) {
-        		tmp_height_left = y.getLeftChild().height;
-        	}
-        	if (y.getRightChild() != null) {
-        		tmp_height_right = y.getRightChild().height;
-        	}
-        	// set x
-        	x = y.getChild(tmp_height_left > tmp_height_right);
-        	
-        	// find which of the 4 conditions apply
-        	// Left-
-        	if (z.key > y.key) {
-        		// Left
-        		if (y.key > x.key) {
-        			// rotate right around parent
-                	rightRotate(z);
-        		}
-        		// Right
-        		else {
-        			// rotate left around child
-                	leftRotate(y);
-                	// rotate right around parent
-                	rightRotate(z);
-        		}
-        	}
-        	// Right-
-        	else {
-        		// Left
-        		if (y.key > x.key) {
-        			// rotate right around child
-                	rightRotate(y);
-                	// rotate left around parent
-                	leftRotate(z);
-        		}
-        		// Right
-        		else {
-        			// rotate left around parent
-                	leftRotate(z);
-        		}
-        	}
-    	}
     }
     
     /**
@@ -226,10 +168,9 @@ public class Tree {
      *
      * @param key
      * @param dd
-     * @throws IOException 
      */
-    public void insert(int key, double dd, BufferedWriter wt) throws IOException {
-        insert(root, new Node(key, dd), wt);
+    public void insert(int key, double dd) {
+        insert(root, new Node(key, dd));
     }
 
     /**
@@ -237,10 +178,9 @@ public class Tree {
      *
      * @param local_root
      * @param insert_node
-     * @return the parent of the inserted node
-     * @throws IOException 
+     * @return the parent of the inserted node 
      */
-    private Node insert(Node local_root, Node insert_node, BufferedWriter wt) throws IOException {
+    private Node insert(Node local_root, Node insert_node) {
         Node tmp_root = local_root;
 
         if (root == null) {
@@ -259,7 +199,7 @@ public class Tree {
 
             } else {
                 // recur with sub tree (left)
-                tmp_root = insert(local_root.getLeftChild(), insert_node, wt);
+                tmp_root = insert(local_root.getLeftChild(), insert_node);
             }
         }
         // we should go right
@@ -274,7 +214,7 @@ public class Tree {
                 local_root.getRightChild().update_height();
             } else {
                 // recur with sub tree (right)
-                tmp_root = insert(local_root.getRightChild(), insert_node, wt);
+                tmp_root = insert(local_root.getRightChild(), insert_node);
             }
 
         }
@@ -283,11 +223,7 @@ public class Tree {
         // update height of this node
         if (local_root != null) {
             local_root.update_height();
-            wt.write("<<<<<<<<<>>>>>>>>>\n");
-            display_tree(wt);
-            do_critical_imbalance(local_root);
-            wt.write("||||||||||||||||||\n");
-            display_tree(wt);
+            critical_imbalance(local_root);
         }
         // return parent of the inserted node
         return tmp_root;
@@ -330,7 +266,7 @@ public class Tree {
         // except in 2-child deletion where the in-order-successor and up must also be updated
         // this can't happen in the reconnect recursive function since the stack was made with the old tree structure
         current.update_height();
-        do_critical_imbalance(current);
+        critical_imbalance(current);
 
         return success;
     }
@@ -356,7 +292,7 @@ public class Tree {
         // no children case
         if (deletion.getLeftChild() == null && deletion.getRightChild() == null) {
             if (parent == null) {
-                // TODO there are no nodes in the tree!
+                // there are no nodes in the tree!
                 root = null;
             } else {
                 // reassign parent's reference to this node to null
@@ -390,7 +326,6 @@ public class Tree {
 
     /**
      * Updates the height of each node directly between the to given nodes
-     *
      * @param start
      * @param end
      */
@@ -407,6 +342,7 @@ public class Tree {
         }
         // update the heights while unwinding
         start.update_height();
+        critical_imbalance(start);
     }
 
     /**
@@ -548,7 +484,7 @@ public class Tree {
      * @throws IOException
      */
     public void display_tree(BufferedWriter writer) throws IOException {
-        int tree_height = root.height + 1;
+        int tree_height = root.height;
         int node_width = root.displayNode().length();
 
         // slightly backwards way of making a string of length node_width of '-' chars

@@ -12,8 +12,8 @@ import java.nio.file.Path;
 
 /**
  * Authors:  Cory Johns, Justin Keeling, Alex Harry
- * Date: 2/14/2018
- * Overview:
+ * Date: 2/27/2018
+ * Overview: TreeApp reads commands out of input_program2.txt and runs the necessary methods
  */
 public class TreeApp {
 	public static void main(String[] args) throws IOException {
@@ -21,8 +21,7 @@ public class TreeApp {
 		Charset charset = Charset.forName("US-ASCII");
 
 		// set up file path
-		Path input_path = FileSystems.getDefault().getPath("./input", "input_lab2.txt");
-		Path outputA_path = FileSystems.getDefault().getPath("./output", "outputA.txt");
+		Path input_path = FileSystems.getDefault().getPath("./input", "input_program2.txt");
 
 		// st_writer prints to console
 		BufferedWriter st_writer = new BufferedWriter(new OutputStreamWriter(System.out));
@@ -31,7 +30,6 @@ public class TreeApp {
 		Tree theTree = new Tree();
 
 		try (BufferedReader reader = Files.newBufferedReader(input_path, charset)) {
-			BufferedWriter fileA_writer = Files.newBufferedWriter(outputA_path, charset);
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				String command = "";
@@ -50,7 +48,7 @@ public class TreeApp {
 						// print insertion nodes
 						st_writer.write("Inserting: " + insertionNodes + "\n\n");
 						// Actually insert the nodes
-						insertFunction(insertionNodes, theTree, fileA_writer);
+						insertFunction(insertionNodes, theTree);
 						break;
 
 					case "find":
@@ -68,7 +66,6 @@ public class TreeApp {
 					case "delete":
 						code = getCode(line);
 						boolean deleted = theTree.delete(code);
-						// TODO test this
 						if (deleted)
 							st_writer.write("Deleted: " + code + "\n");
 						else {
@@ -103,14 +100,14 @@ public class TreeApp {
 
 	} // end main()
 
-	private static void insertFunction(String nodes, Tree tree, BufferedWriter wt) throws NumberFormatException, IOException {
+	private static void insertFunction(String nodes, Tree tree) throws NumberFormatException {
 		// make an array of key codes in string format
 		String[] strCodes = nodes.split(",");
 
 		// insert each key in order, but don't bother if it is to short
 		for (String tmp : strCodes) {
 			if (tmp.length() > 0) {
-				tree.insert(Integer.parseInt(tmp), Integer.parseInt(tmp) + 0.9, wt);
+				tree.insert(Integer.parseInt(tmp), Integer.parseInt(tmp) + 0.9);
 			}
 		}
 
